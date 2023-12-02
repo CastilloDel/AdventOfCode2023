@@ -1,8 +1,6 @@
 module Main where
 
 import Data.Char (isDigit)
-import Data.HashMap (Map, fromList)
-import qualified Data.HashMap as HashMap
 import Text.ParserCombinators.ReadP (ReadP, char, choice, many1, readP_to_S, satisfy, sepBy1, string)
 
 main :: IO ()
@@ -12,11 +10,14 @@ main = do
   putStrLn "First problem:"
   putStrLn $ "\tTest input: " ++ show (firstProblem testInput) ++ " == 8"
   putStrLn $ "\tProblem input: " ++ show (firstProblem input) ++ " == 2149"
+  putStrLn "Second problem:"
+  putStrLn $ "\tTest input: " ++ show (secondProblem testInput) ++ " == 2286"
+  putStrLn $ "\tProblem input: " ++ show (secondProblem input) ++ " == 71274"
   where
     readInput file = map parseInput . lines <$> readFile file
     parseInput = fst . last . readP_to_S parseGame
 
-data Color = Green | Red | Blue deriving (Show)
+data Color = Green | Red | Blue deriving (Show, Eq)
 
 type CubeSet = [(Color, Int)]
 
@@ -48,8 +49,8 @@ parseCubes = do
 parseColor :: ReadP Color
 parseColor = do
   choice
-    [ string "red" >> return Red,
-      string "green" >> return Green,
+    [ string "green" >> return Green,
+      string "red" >> return Red,
       string "blue" >> return Blue
     ]
 
@@ -63,3 +64,16 @@ checkCubes :: (Color, Int) -> Bool
 checkCubes (Green, n) = n <= 13
 checkCubes (Red, n) = n <= 12
 checkCubes (Blue, n) = n <= 14
+
+secondProblem :: [Game] -> Int
+secondProblem = sum . map getPower
+
+getPower :: Game -> Int
+getPower game = greenMin * redMin * blueMin
+  where
+    greenMin = getMin Green game
+    redMin = getMin Red game
+    blueMin = getMin Blue game
+
+getMin :: Color -> Game -> Int
+getMin color = maximum . map snd . filter ((== color) . fst) . concat . sets
