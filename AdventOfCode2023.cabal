@@ -19,3 +19,9 @@ executable day2
     build-depends:    base ^>=4.17.2.0
     hs-source-dirs:   day2/src
     default-language: Haskell2010
+
+executable day3
+    main-is:          Main.hs
+    build-depends:    base ^>=4.17.2.0, matrix ^>=0.3.6.1, hashmap ^>=1.3.3
+    hs-source-dirs:   day3/src
+    default-language: Haskell2010
