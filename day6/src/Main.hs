@@ -11,6 +11,9 @@ main = do
   putStrLn "First problem:"
   putStrLn $ "\tTest input: " ++ show (firstProblem testInput) ++ " == 288"
   putStrLn $ "\tProblem input: " ++ show (firstProblem input) ++ " == 1413720"
+  putStrLn "Second problem:"
+  putStrLn $ "\tTest input: " ++ show (secondProblem testInput) ++ " == 71503"
+  putStrLn $ "\tProblem input: " ++ show (secondProblem input) ++ " == 1413720"
   where
     readInput = fst . last . readP_to_S parseProblemData
 
@@ -38,3 +41,10 @@ getFeasibleStrategies totalTime record = filter ((> record) . getDistance totalT
 
 getDistance :: Int -> Int -> Int
 getDistance totalTime timePressing = (totalTime - timePressing) * timePressing
+
+secondProblem :: ProblemData -> Int
+secondProblem (ProblemData times records) = length $ getFeasibleStrategies time record
+  where
+    time = (\a -> trace (show a) a) $ reinterpretInput times
+    record = (\a -> trace (show a) a) $ reinterpretInput records
+    reinterpretInput = read . foldl1 (++) . map show
