@@ -3,7 +3,6 @@ module Main where
 import Data.List (sort)
 import Data.Map (fromListWith, toList)
 import Data.Ord (Down (Down), comparing)
-import Debug.Trace (trace)
 import GHC.OldList (sortBy)
 
 main :: IO ()
@@ -12,7 +11,10 @@ main = do
   input <- readInput <$> readFile "day7/input"
   putStrLn "First problem:"
   putStrLn $ "\tTest input: " ++ show (firstProblem testInput) ++ " == 6440"
-  putStrLn $ "\tProblem input: " ++ show (firstProblem input) ++ " == 1413720"
+  putStrLn $ "\tProblem input: " ++ show (firstProblem input) ++ " == 250370104"
+  putStrLn "Second problem:"
+  putStrLn $ "\tTest input: " ++ show (secondProblem testInput) ++ " == 5905"
+  putStrLn $ "\tProblem input: " ++ show (secondProblem input) ++ " == 251735672"
   where
     readInput = map parsePlay . lines
 
@@ -76,4 +78,43 @@ compareHand (Hand ca ha) (Hand cb hb)
 compareCards :: [Card] -> [Card] -> Ordering
 compareCards (a : ra) (b : rb)
   | a == b = compareCards ra rb
+  | otherwise = compare a b
+
+secondProblem :: [Play] -> Int
+secondProblem = sum . zipWith (*) (iterate (+ 1) 1) . map (bid . fst) . sortBy (\a b -> compareHand2 (snd a) (snd b)) . map (\a -> (a, getHand2 a))
+
+getHand2 :: Play -> Hand
+getHand2 (Play cards _) = Hand cards $ addJokers jokers $ getHandType occurrences
+  where
+    occurrences = sortBy (comparing Down) (map snd $ toList (fromListWith (+) [(c, 1) | c <- cardsWithoutJokers]))
+    cardsWithoutJokers = filter (/= Joker) cards
+    jokers = length $ filter (== Joker) cards
+    getHandType [5] = Repoker
+    getHandType (4 : _) = Poker
+    getHandType [3, 2] = FullHouse
+    getHandType (3 : _) = ThreeOfAKind
+    getHandType (2 : 2 : _) = DoublePair
+    getHandType (2 : _) = Pair
+    getHandType _ = HighCard
+
+addJokers :: Int -> HandType -> HandType
+addJokers 0 handType = handType
+addJokers 1 HighCard = Pair
+addJokers 1 Pair = ThreeOfAKind
+addJokers 1 DoublePair = FullHouse
+addJokers 1 ThreeOfAKind = Poker
+addJokers 1 Poker = Repoker
+addJokers 1 Repoker = Repoker
+addJokers n handType = addJokers (n - 1) $ addJokers 1 handType
+
+compareHand2 :: Hand -> Hand -> Ordering
+compareHand2 (Hand ca ha) (Hand cb hb)
+  | ha == hb = compareCards2 ca cb
+  | otherwise = compare ha hb
+
+compareCards2 :: [Card] -> [Card] -> Ordering
+compareCards2 (a : ra) (b : rb)
+  | a == b = compareCards2 ra rb
+  | a == Joker = LT
+  | b == Joker = GT
   | otherwise = compare a b
